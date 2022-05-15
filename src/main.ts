@@ -28,6 +28,6 @@ async function bootstrap() {
 
   app.enableCors();
 
-  await app.listen(configService.get<string>('API_SYNC_PORT') || 4000);
+  await app.listen(configService.get<string>('api') || 4000);
 }
 bootstrap();
