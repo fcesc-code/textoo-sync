@@ -8,13 +8,19 @@ import { DB_URI, FB_KEYS } from './KEYS/FIREBASE_KEYS';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService: ConfigService = app.get(ConfigService);
+  // const newPrivateKey: string = FB_KEYS.private_key.replace(/\\n/g, '\n');
   const adminConfig: ServiceAccount = {
-    projectId: configService.get<string>(FB_KEYS.project_id),
-    privateKey: configService
-      .get<string>(FB_KEYS.private_key)
-      .replace(/\\n/g, '\n'),
-    clientEmail: configService.get<string>(FB_KEYS.client_email),
+    projectId: FB_KEYS.project_id,
+    clientEmail: FB_KEYS.client_email,
+    privateKey: FB_KEYS.private_key,
   };
+
+  // const adminConfig: ServiceAccount = {
+  //   projectId: configService.get<string>(FB_KEYS.project_id),
+  //   clientEmail: configService.get<string>(FB_KEYS.client_email),
+  //   privateKey: configService.get<string>(FB_KEYS.private_key),
+  // };
+
   admin.initializeApp({
     credential: admin.credential.cert(adminConfig),
     databaseURL: DB_URI,
@@ -22,6 +28,6 @@ async function bootstrap() {
 
   app.enableCors();
 
-  await app.listen(configService.get<string>('API_SYNC_PORT') || 4000);
+  await app.listen(configService.get<string>('api') || 4000);
 }
 bootstrap();

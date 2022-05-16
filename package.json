@@ -1,24 +1,33 @@
 {
   "name": "textoo-sync",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
   "private": true,
-  "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build",
+    "build": "tsc",
+    "build:dev": "npm-run-all clean build:ci",
+    "build:ci": "nest build",
+    "clean": "rimraf dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "start:def": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:ci": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix --ext .ts",
     "test": "jest",
+    "test:ci": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "ci": "npm-run-all lint:ci test:ci",
+    "deploy": "npm-run-all build:ci deploy:firebase",
+    "deploy:firebase": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
@@ -52,6 +61,7 @@
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "firebase-functions-test": "^2.0.2",
     "jest": "^27.2.5",
     "prettier": "^2.3.2",
     "source-map-support": "^0.5.20",
@@ -74,9 +84,38 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/schemas/**",
+      "!**/dtos/**",
+      "!**/interfaces/**",
+      "!**/main.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  }
+  },
+  "main": "dist/src/index.js",
+  "engines": {
+    "node": "16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fcesc-code/textoo-front.git"
+  },
+  "author": {
+    "name": "Francesc Brugarolas",
+    "url": "https://github.com/fcesc-code"
+  },
+  "description": "Language activities for teachers and lerners.",
+  "license": "CC-BY-NC-ND-4.0",
+  "bugs": {
+    "url": "https://github.com/fcesc-code/textoo-front.git/issues"
+  },
+  "homepage": "https://github.com/fcesc-code/textoo-front.git#readme",
+  "keywords": [
+    "Typescript",
+    "NestJS",
+    "Firebase",
+    "Realtime Database",
+    "UOC"
+  ]
 }

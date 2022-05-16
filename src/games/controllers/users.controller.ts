@@ -6,88 +6,83 @@ import {
   HttpStatus,
   Param,
   Post,
-  Put,
   Res,
   // UseGuards,
   // UsePipes,
 } from '@nestjs/common';
-import { RECORDS_COLLECTION } from '../constants/collections';
+import { GAMES_COLLECTION } from '../constants/collections';
 import { GameRecordsService } from '../services/gameRecords.service';
 // import { AuthGuard } from '@nestjs/passport';
 // import { ApiBearerAuth } from '@nestjs/swagger';
 import { ValidGameKeyPipe } from '../pipes/valid-key.game.pipe';
+import { gameUser } from '../dtos/game.dto';
 
-@Controller(RECORDS_COLLECTION)
-export class RecordsController {
+@Controller(GAMES_COLLECTION)
+export class UsersController {
   constructor(private gamesDB: GameRecordsService) {}
 
-  @Get('/all')
+  @Get('/live/users/:gameId')
   // @ApiBearerAuth('access_token')
   // @UseGuards(AuthGuard('jwt'))
-  async getAllGameRecords(
+  async getGameUsersStream(
     @Res() res,
     @Param('gameId', ValidGameKeyPipe) gameId: string,
   ): Promise<any[]> {
-    const data = await this.gamesDB.getAll(gameId);
+    const data = await this.gamesDB.listenUsersInGame(gameId);
     return res.status(HttpStatus.OK).json(data);
   }
 
-  @Get('/:gameId')
+  @Get('/static/users/:gameId/:userId')
   // @ApiBearerAuth('access_token')
   // @UseGuards(AuthGuard('jwt'))
-  async getGameRecord(
+  async getGameScoresOnce(
     @Res() res,
     @Param('gameId', ValidGameKeyPipe) gameId: string,
-    @Body() record: any,
+    @Param('userId') userId: string,
   ): Promise<any> {
-    const data = await this.gamesDB.get(gameId, record.id as string);
+    const data = await this.gamesDB.checkUserInGame(gameId, userId);
     return res.status(HttpStatus.OK).json(data);
   }
 
-  @Post()
-  async addGameRecord(
+  @Get('/live/scores/:gameId/:userId')
+  // @ApiBearerAuth('access_token')
+  // @UseGuards(AuthGuard('jwt'))
+  async getGameUserScoresStream(
     @Res() res,
     @Param('gameId', ValidGameKeyPipe) gameId: string,
-    @Body() record: any,
+    @Param('userId') userId: string,
+  ): Promise<any[]> {
+    const data = await this.gamesDB.listenGameScore(gameId, userId);
+    return res.status(HttpStatus.OK).json(data);
+  }
+
+  @Post('/static/users/:gameId')
+  // @ApiBearerAuth('access_token')
+  // @UseGuards(AuthGuard('jwt'))
+  async addUserToGame(
+    @Res() res,
+    @Param('gameId', ValidGameKeyPipe) gameId: string,
+    @Body() user: gameUser,
   ): Promise<any> {
-    const data = await this.gamesDB.create(gameId, record);
+    const data = await this.gamesDB.addUserToGame(gameId, user);
     return res.status(HttpStatus.CREATED).json({
-      message: 'Record successfully added to game',
-      group: data,
+      message: 'User successfully added to game',
+      user: data,
     });
   }
 
-  @Delete('/:gameId')
+  @Delete('/static/users/:gameId')
   // @ApiBearerAuth('access_token')
   // @UseGuards(AuthGuard('jwt'))
-  async removeGameRecord(
+  async removeUserFromGame(
     @Res() res,
     @Param('gameId', ValidGameKeyPipe) gameId: string,
-    @Body() record: any,
+    @Param('userId') userId: string,
   ): Promise<any> {
-    const data = await this.gamesDB.delete(gameId, record.id as string);
+    const data = await this.gamesDB.removeUserFromGame(gameId, userId);
     return res.status(HttpStatus.OK).json({
-      message: 'Record successfully removed from game',
-      group: data,
-    });
-  }
-
-  @Put('/:gameId')
-  // @ApiBearerAuth('access_token')
-  // @UseGuards(AuthGuard('jwt'))
-  async updateGameRecord(
-    @Res() res,
-    @Param('gameId', ValidGameKeyPipe) gameId: string,
-    @Body() changes: any,
-  ): Promise<any> {
-    const data = await this.gamesDB.update(
-      gameId,
-      changes.id as string,
-      changes.values,
-    );
-    return res.status(HttpStatus.OK).json({
-      message: 'Record successfully updated in game',
-      group: data,
+      message: 'User successfully removed from game',
+      user: data,
     });
   }
 }
